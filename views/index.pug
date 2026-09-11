@@ -11,25 +11,27 @@ html(lang="es")
     main#loginView.login-view
       section.login-card
         div.login-brand
-          span.brand-mark P
+          span.brand-mark
+            img(src="/images/logo.jpg" alt="Logo de Estudio Pilates")
           span Estudio Pilates
         p.eyebrow.mb-2 Bienvenida
         h1 Tu estudio, en orden.
         p.login-copy Inicia sesión para gestionar a tus clientes, pagos y asistencias.
         form#loginForm
-          label.form-label(for="usuario") Usuario
-          input.form-control.mb-3#usuario(type="text" value="admin" autocomplete="username" required)
+          label.form-label(for="usuario") Correo electrónico
+          input.form-control.mb-3#usuario(type="email" placeholder="nombre@ejemplo.com" autocomplete="email" required)
           label.form-label(for="contrasena") Contraseña
           input.form-control.mb-3#contrasena(type="password" placeholder="Ingresa tu contraseña" autocomplete="current-password" required)
           p#loginError.form-error(hidden) Usuario o contraseña incorrectos.
           button.btn.btn-primary.w-100.py-2(type="submit") Iniciar sesión
-        p.login-help Acceso inicial: <strong>admin</strong> / <strong>pilates2026</strong>
+        p.login-help Usa el correo y contraseña creados por el administrador.
 
     //- Aplicación autenticada
     div#appView.app-shell(hidden)
       aside.sidebar
         div.sidebar-brand
-          span.brand-mark P
+          span.brand-mark
+            img(src="/images/logo.jpg" alt="Logo de Estudio Pilates")
           span Estudio Pilates
         nav.sidebar-nav(aria-label="Navegación principal")
           button.nav-link.active(type="button" data-view="inicio")
@@ -47,8 +49,11 @@ html(lang="es")
           button.nav-link(type="button" data-view="historial")
             span ◷
             | Historial
+          button.nav-link.admin-only(type="button" data-view="ingresos")
+            span ◔
+            | Finanzas
         div.sidebar-bottom
-          span#usuarioActivo Administrador
+          span#usuarioActivo
           button#cerrarSesion.btn-link(type="button") Cerrar sesión
 
       main.app-main
@@ -64,7 +69,7 @@ html(lang="es")
               p.eyebrow.mb-2 Resumen del día
               h2 Todo listo para recibir a tus clientes.
               p.mb-0 Consulta un expediente o registra una asistencia desde aquí.
-            div.hero-flower ✦
+            img.hero-silhouette(src="/images/logo.jpg" alt="Logo de Estudio Pilates")
           div.dashboard-grid
             article.metric-card
               span.metric-label Asistencias hoy
@@ -155,6 +160,36 @@ html(lang="es")
             ul#listaHistorial.timeline
             p#sinHistorial.empty-copy(hidden) No hay movimientos registrados todavía.
 
+        section#ingresos.view-panel.admin-only(hidden)
+          div.section-heading
+            div
+              p.eyebrow.mb-1 Administración
+              h2 Finanzas del negocio
+          div.dashboard-grid.finance-metrics
+            article.metric-card
+              span.metric-label Ingresos del mes
+              strong#ingresosMes $0.00
+              small Pagos registrados este mes
+            article.metric-card
+              span.metric-label Ingresos totales
+              strong#ingresosTotales $0.00
+              small Histórico de cobros
+            article.metric-card
+              span.metric-label Ticket promedio
+              strong#ticketPromedio $0.00
+              small Por pago registrado
+          div.row.g-4
+            div.col-lg-8
+              div.content-card.h-100
+                h3.h5 Ingresos de los últimos 6 meses
+                p.card-description Cobros registrados por mes
+                div.chart-wrap.finance-chart#graficaIngresos
+            div.col-lg-4
+              div.content-card.h-100
+                h3.h5 Ingresos por plan
+                p.card-description Distribución acumulada
+                ul#desglosePlanes.income-breakdown
+
       //- Modal de expediente
       div.modal.fade#clienteModal(tabindex="-1" aria-hidden="true")
         div.modal-dialog.modal-lg.modal-dialog-scrollable
@@ -222,7 +257,7 @@ html(lang="es")
                 label.form-label(for="fechaPago") Fecha de pago
                 input.form-control#fechaPago(type="date" required)
                 label.form-label.mt-3(for="montoPago") Monto (MXN)
-                input.form-control#montoPago(type="number" min="0" step="0.01" placeholder="0.00" required)
+                input.form-control#montoPago(type="number" min="0" step="0.01" placeholder="Selecciona un plan" readonly required)
                 label.form-label.mt-3(for="planPago") Plan pagado
                 select.form-select#planPago(required)
               div.modal-footer
@@ -254,4 +289,6 @@ html(lang="es")
                 button.btn.btn-light(type="button" data-bs-dismiss="modal") Cancelar
                 button.btn.btn-primary(type="submit") Guardar plan
     script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js")
+    script(src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2")
+    script(src="/css/js/supabase-config.js")
     script(src="/css/js/app.js" defer)
