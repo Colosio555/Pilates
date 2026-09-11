@@ -1,0 +1,14 @@
+{
+  "name": "pilates-app",
+  "version": "1.0.0",
+  "description": "Sistema de gestión para estudio de Pilates",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "firebase": "^10.7.0",
+    "pug": "^3.0.2"
+  }
+}

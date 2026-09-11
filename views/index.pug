@@ -1,0 +1,257 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    title= titulo
+    link(href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet")
+    link(rel="stylesheet" href="/css/style.css")
+  body
+    //- Vista de acceso
+    main#loginView.login-view
+      section.login-card
+        div.login-brand
+          span.brand-mark P
+          span Estudio Pilates
+        p.eyebrow.mb-2 Bienvenida
+        h1 Tu estudio, en orden.
+        p.login-copy Inicia sesión para gestionar a tus clientes, pagos y asistencias.
+        form#loginForm
+          label.form-label(for="usuario") Usuario
+          input.form-control.mb-3#usuario(type="text" value="admin" autocomplete="username" required)
+          label.form-label(for="contrasena") Contraseña
+          input.form-control.mb-3#contrasena(type="password" placeholder="Ingresa tu contraseña" autocomplete="current-password" required)
+          p#loginError.form-error(hidden) Usuario o contraseña incorrectos.
+          button.btn.btn-primary.w-100.py-2(type="submit") Iniciar sesión
+        p.login-help Acceso inicial: <strong>admin</strong> / <strong>pilates2026</strong>
+
+    //- Aplicación autenticada
+    div#appView.app-shell(hidden)
+      aside.sidebar
+        div.sidebar-brand
+          span.brand-mark P
+          span Estudio Pilates
+        nav.sidebar-nav(aria-label="Navegación principal")
+          button.nav-link.active(type="button" data-view="inicio")
+            span ◉
+            | Inicio
+          button.nav-link(type="button" data-view="clientes")
+            span ♧
+            | Clientes
+          button.nav-link(type="button" data-view="pagos")
+            span $
+            | Pagos
+          button.nav-link(type="button" data-view="planes")
+            span ◫
+            | Planes
+          button.nav-link(type="button" data-view="historial")
+            span ◷
+            | Historial
+        div.sidebar-bottom
+          span#usuarioActivo Administrador
+          button#cerrarSesion.btn-link(type="button") Cerrar sesión
+
+      main.app-main
+        header.app-header
+          div
+            p.eyebrow.mb-1 Sistema de gestión
+            h1#pageTitle Inicio
+          div.date-display#fechaActual
+
+        section#inicio.view-panel
+          section.hero
+            div
+              p.eyebrow.mb-2 Resumen del día
+              h2 Todo listo para recibir a tus clientes.
+              p.mb-0 Consulta un expediente o registra una asistencia desde aquí.
+            div.hero-flower ✦
+          div.dashboard-grid
+            article.metric-card
+              span.metric-label Asistencias hoy
+              strong#asistenciasHoy 0
+              small Clientes registrados hoy
+            article.metric-card
+              span.metric-label Clientes activos
+              strong#clientesActivos 0
+              small Con paquete vigente
+            article.metric-card
+              span.metric-label Próximos vencimientos
+              strong#proximosVencimientos 0
+              small En los siguientes 7 días
+          div.content-card.search-card
+            label.form-label(for="buscador") Buscar cliente
+            div.search-row
+              input.form-control#buscador(type="search" placeholder="Escribe nombre, apellido o teléfono")
+              button.btn.btn-primary#nuevoClienteInicio(type="button") + Nuevo cliente
+            div#resultadosBusqueda.search-results
+          div.row.g-4
+            div.col-lg-7
+              div.content-card.h-100
+                h3.h5 Asistencias de la semana
+                p.card-description Últimos siete días
+                div.chart-wrap#graficaSemana
+            div.col-lg-5
+              div.content-card.h-100
+                h3.h5 Actividad reciente
+                ul#actividadReciente.activity-list
+
+        section#clientes.view-panel(hidden)
+          div.section-heading
+            div
+              p.eyebrow.mb-1 Expedientes
+              h2 Clientes
+            button.btn.btn-primary#nuevoCliente(type="button") + Registrar cliente
+          div.content-card.table-card
+            div.table-responsive
+              table.table.align-middle.mb-0
+                thead
+                  tr
+                    th Cliente
+                    th Paquete
+                    th Restantes
+                    th Vencimiento
+                    th Último pago
+                    th
+                tbody#tablaClientes
+          div#sinClientes.empty-state(hidden)
+            div.empty-icon ♡
+            h3 Aún no hay clientes
+            p Registra tu primer cliente para empezar.
+
+        section#pagos.view-panel(hidden)
+          div.section-heading
+            div
+              p.eyebrow.mb-1 Ingresos
+              h2 Registro de pagos
+            button.btn.btn-primary#nuevoPago(type="button") + Registrar entrada
+          div.content-card.table-card
+            div.table-responsive
+              table.table.align-middle.mb-0
+                thead
+                  tr
+                    th Cliente
+                    th Plan
+                    th Monto
+                    th Fecha y hora
+                tbody#tablaPagos
+          p#sinPagos.empty-copy.mt-3(hidden) Aún no hay pagos registrados.
+
+        section#planes.view-panel(hidden)
+          div.section-heading
+            div
+              p.eyebrow.mb-1 Configuración
+              h2 Planes
+            button.btn.btn-primary#nuevoPlan(type="button") + Agregar plan
+          div#listaPlanes.plan-grid
+          p#sinPlanes.empty-copy(hidden) Aún no hay planes configurados.
+
+        section#historial.view-panel(hidden)
+          div.section-heading
+            div
+              p.eyebrow.mb-1 Auditoría
+              h2 Historial de movimientos
+          div.content-card
+            p.card-description Entradas, registros, pagos y modificaciones en orden cronológico.
+            ul#listaHistorial.timeline
+            p#sinHistorial.empty-copy(hidden) No hay movimientos registrados todavía.
+
+      //- Modal de expediente
+      div.modal.fade#clienteModal(tabindex="-1" aria-hidden="true")
+        div.modal-dialog.modal-lg.modal-dialog-scrollable
+          div.modal-content
+            form#clienteForm
+              div.modal-header
+                div
+                  p.eyebrow.mb-1 Expediente
+                  h2.modal-title.fs-5#modalClienteTitulo Nuevo cliente
+                button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Cerrar")
+              div.modal-body
+                input#clienteId(type="hidden")
+                div.row.g-3
+                  div.col-md-4
+                    label.form-label(for="nombre") Nombre
+                    input.form-control#nombre(type="text" required)
+                  div.col-md-4
+                    label.form-label(for="apellidoPaterno") Apellido paterno
+                    input.form-control#apellidoPaterno(type="text" required)
+                  div.col-md-4
+                    label.form-label(for="apellidoMaterno") Apellido materno
+                    input.form-control#apellidoMaterno(type="text" required)
+                  div.col-md-6
+                    label.form-label(for="contacto") Número de contacto
+                    input.form-control#contacto(type="tel" required)
+                  div.col-md-6
+                    label.form-label(for="cumpleanos") Cumpleaños
+                    input.form-control#cumpleanos(type="date" required)
+                  div.col-md-4
+                    label.form-label(for="paquete") Paquete contratado
+                    select.form-select#paquete(required)
+                      option(value="Básico") Básico
+                      option(value="Intensivo") Intensivo
+                      option(value="Ilimitado") Ilimitado
+                  div.col-md-4
+                    label.form-label(for="clasesContratadas") Clases contratadas
+                    input.form-control#clasesContratadas(type="number" min="1" value="8" required)
+                  div.col-md-4
+                    label.form-label(for="clasesRestantes") Clases restantes
+                    input.form-control#clasesRestantes(type="number" min="0" value="8" required)
+                  div.col-md-6
+                    label.form-label(for="fechaContratacion") Fecha de contratación
+                    input.form-control#fechaContratacion(type="date" required)
+                  div.col-md-6
+                    label.form-label(for="fechaVencimiento") Vencimiento del paquete
+                    input.form-control#fechaVencimiento(type="date" required)
+                  div.col-12
+                    label.form-label(for="notas") Notas de salud o consideraciones
+                    textarea.form-control#notas(rows="3" placeholder="Ej. lesión, enfermedad, limitación física o indicaciones importantes.")
+              div.modal-footer
+                button.btn.btn-light(type="button" data-bs-dismiss="modal") Cancelar
+                button.btn.btn-primary(type="submit") Guardar expediente
+
+      div.modal.fade#pagoModal(tabindex="-1" aria-hidden="true")
+        div.modal-dialog
+          div.modal-content
+            form#pagoForm
+              div.modal-header
+                h2.modal-title.fs-5 Registrar pago
+                button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Cerrar")
+              div.modal-body
+                input#pagoClienteId(type="hidden")
+                label.form-label(for="clientePago") Cliente que realizó el pago
+                select.form-select#clientePago(required)
+                label.form-label(for="fechaPago") Fecha de pago
+                input.form-control#fechaPago(type="date" required)
+                label.form-label.mt-3(for="montoPago") Monto (MXN)
+                input.form-control#montoPago(type="number" min="0" step="0.01" placeholder="0.00" required)
+                label.form-label.mt-3(for="planPago") Plan pagado
+                select.form-select#planPago(required)
+              div.modal-footer
+                button.btn.btn-light(type="button" data-bs-dismiss="modal") Cancelar
+                button.btn.btn-primary(type="submit") Guardar pago
+
+      div.modal.fade#planModal(tabindex="-1" aria-hidden="true")
+        div.modal-dialog
+          div.modal-content
+            form#planForm
+              div.modal-header
+                h2.modal-title.fs-5#modalPlanTitulo Nuevo plan
+                button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Cerrar")
+              div.modal-body
+                input#planId(type="hidden")
+                label.form-label(for="planNombre") Nombre del plan
+                input.form-control#planNombre(type="text" required)
+                div.row.g-3.mt-1
+                  div.col-md-6
+                    label.form-label(for="planClases") Clases al mes
+                    input.form-control#planClases(type="number" min="1" required)
+                  div.col-md-6
+                    label.form-label(for="planCosto") Costo mensual (MXN)
+                    input.form-control#planCosto(type="number" min="0" step="0.01" required)
+                label.form-label.mt-3(for="planVigencia") Vigencia en días
+                input.form-control#planVigencia(type="number" min="1" value="30" required)
+                p.form-text La fecha de caducidad se calculará desde la fecha del pago.
+              div.modal-footer
+                button.btn.btn-light(type="button" data-bs-dismiss="modal") Cancelar
+                button.btn.btn-primary(type="submit") Guardar plan
+    script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js")
+    script(src="/css/js/app.js" defer)
