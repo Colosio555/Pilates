@@ -142,6 +142,7 @@ html(lang="es")
                     th Plan
                     th Monto
                     th Fecha y hora
+                    th.admin-only Acción
                 tbody#tablaPagos
           p#sinPagos.empty-copy.mt-3(hidden) Aún no hay pagos registrados.
 
@@ -274,6 +275,23 @@ html(lang="es")
               div.modal-footer
                 button.btn.btn-light(type="button" data-bs-dismiss="modal") Cancelar
                 button.btn.btn-primary(type="submit") Guardar plan
+
+      div.modal.fade#eliminarPagoModal(tabindex="-1" aria-hidden="true")
+        div.modal-dialog
+          div.modal-content
+            form#eliminarPagoForm
+              div.modal-header
+                h2.modal-title.fs-5 Confirmar eliminación de pago
+                button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Cerrar")
+              div.modal-body
+                input#pagoEliminarId(type="hidden")
+                p.mb-3 Esta acción eliminará el cargo del registro de pagos, las finanzas y el estado del cliente. También quedará registrada en el historial.
+                label.form-label(for="contrasenaEliminarPago") Ingresa tu contraseña de administrador
+                input.form-control#contrasenaEliminarPago(type="password" autocomplete="current-password" required)
+                p#eliminarPagoError.form-error.mt-2(hidden) La contraseña no es correcta.
+              div.modal-footer
+                button.btn.btn-light(type="button" data-bs-dismiss="modal") Cancelar
+                button.btn.btn-danger(type="submit") Eliminar pago
     script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js")
     script(src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2")
     script(src="/css/js/supabase-config.js")
