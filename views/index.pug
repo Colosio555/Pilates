@@ -106,6 +106,9 @@ html(lang="es")
               p.eyebrow.mb-1 Expedientes
               h2 Clientes
             button.btn.btn-primary#nuevoCliente(type="button") + Registrar cliente
+          div.content-card.search-card
+            label.form-label(for="buscadorClientes") Buscar para asistencia
+            input.form-control#buscadorClientes(type="search" inputmode="numeric" maxlength="4" placeholder="Ingresa el código de 4 dígitos del cliente")
           div.content-card.table-card
             div.table-responsive
               table.table.align-middle.mb-0
