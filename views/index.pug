@@ -111,6 +111,7 @@ html(lang="es")
               table.table.align-middle.mb-0
                 thead
                   tr
+                    th Código
                     th Cliente
                     th Paquete
                     th Restantes
@@ -218,21 +219,6 @@ html(lang="es")
                   div.col-md-6
                     label.form-label(for="cumpleanos") Cumpleaños
                     input.form-control#cumpleanos(type="date" required)
-                  div.col-md-12
-                    label.form-label(for="paquete") Paquete contratado
-                    select.form-select#paquete(required)
-                      option(value="Básico") Básico
-                      option(value="Intensivo") Intensivo
-                      option(value="Ilimitado") Ilimitado
-                  //- El conteo se asigna internamente a partir del paquete seleccionado.
-                  input#clasesContratadas(type="hidden")
-                  input#clasesRestantes(type="hidden")
-                  div.col-md-6
-                    label.form-label(for="fechaContratacion") Fecha de contratación
-                    input.form-control#fechaContratacion(type="date" required)
-                  div.col-md-6
-                    label.form-label(for="fechaVencimiento") Vencimiento del paquete
-                    input.form-control#fechaVencimiento(type="date" required)
                   div.col-12
                     label.form-label(for="notas") Notas de salud o consideraciones
                     textarea.form-control#notas(rows="3" placeholder="Ej. lesión, enfermedad, limitación física o indicaciones importantes.")
