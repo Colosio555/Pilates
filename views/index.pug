@@ -434,6 +434,16 @@ html(lang="es")
               p.eyebrow.mb-1 Mis reservas
               h2 Agenda
           div.content-card
+            div.client-calendar-weekdays
+              span Dom
+              span Lun
+              span Mar
+              span Mié
+              span Jue
+              span Vie
+              span Sáb
+            div#calendarioCliente.calendar-grid.client-calendar
+            hr.my-4
             form#agendarCitaClienteForm
               label.form-label(for="horarioDisponibleCliente") Horarios disponibles
               select.form-select#horarioDisponibleCliente(required)
