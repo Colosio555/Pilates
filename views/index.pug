@@ -194,6 +194,23 @@ html(lang="es")
                 div#calendarioAgenda.calendar-grid
             div.col-lg-4
               div.content-card
+                h3.h5 Publicar horario disponible
+                p.card-description Los clientes solo podrán reservar los horarios publicados aquí.
+                form#horarioDisponibleForm
+                  label.form-label(for="tituloHorario") Nombre de la clase o cita
+                  input.form-control#tituloHorario(type="text" value="Cita de Pilates" required)
+                  label.form-label.mt-3(for="inicioHorario") Inicio
+                  input.form-control#inicioHorario(type="datetime-local" required)
+                  label.form-label.mt-3(for="finHorario") Fin
+                  input.form-control#finHorario(type="datetime-local" required)
+                  label.form-label.mt-3(for="cupoHorario") Cupo máximo
+                  input.form-control#cupoHorario(type="number" min="1" value="1" required)
+                  button.btn.btn-primary.w-100.mt-3(type="submit") Publicar horario
+                hr.my-4
+                h3.h5 Horarios publicados
+                ul#listaHorariosPublicados.appointment-list
+            div.col-lg-4
+              div.content-card
                 h3.h5#fechaAgendaSeleccionada Selecciona una fecha
                 p.card-description Elige un día del calendario para agendar una cita.
                 form#citaForm
@@ -418,14 +435,11 @@ html(lang="es")
               h2 Agenda
           div.content-card
             form#agendarCitaClienteForm
-              div.row.g-3
-                div.col-sm-6
-                  label.form-label(for="fechaCitaCliente") Fecha
-                  input.form-control#fechaCitaCliente(type="date" required)
-                div.col-sm-6
-                  label.form-label(for="horaCitaCliente") Horario
-                  input.form-control#horaCitaCliente(type="time" required)
-              button.btn.btn-primary.mt-3(type="submit") Agendar cita
+              label.form-label(for="horarioDisponibleCliente") Horarios disponibles
+              select.form-select#horarioDisponibleCliente(required)
+                option(value="") Cargando horarios disponibles…
+              p#detalleHorarioCliente.form-text Selecciona un horario publicado por el estudio.
+              button.btn.btn-primary.mt-3(type="submit") Reservar horario
             hr.my-4
             p.card-description Próximas citas agendadas.
             ul#agendaCliente.appointment-list

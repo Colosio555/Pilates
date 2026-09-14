@@ -126,6 +126,56 @@ app.post('/api/portal/appointments', async (req, res) => {
     } catch (error) { res.status(400).json({ error: error.message }); }
 });
 
+app.get('/api/sessions', async (req, res) => {
+    try {
+        const { role } = await authenticatedUser(req);
+        if (!['admin', 'trabajador'].includes(role)) throw new Error('Sin permisos.');
+        const sessions = await supabaseAdmin('/rest/v1/class_sessions?select=*&order=starts_at.asc');
+        const bookings = await supabaseAdmin('/rest/v1/class_bookings?select=session_id');
+        res.json(sessions.map(session => ({ ...session, reserved: bookings.filter(item => item.session_id === session.id).length })));
+    } catch (error) { res.status(403).json({ error: error.message }); }
+});
+
+app.post('/api/sessions', async (req, res) => {
+    try {
+        const { user, role } = await authenticatedUser(req);
+        if (!['admin', 'trabajador'].includes(role)) throw new Error('Sin permisos.');
+        const { title, startsAt, endsAt, capacity } = req.body;
+        if (!title || !startsAt || !endsAt || !Number.isInteger(+capacity) || +capacity < 1) throw new Error('Completa un título, horario válido y cupo.');
+        if (new Date(endsAt) <= new Date(startsAt)) throw new Error('La hora de fin debe ser posterior a la hora de inicio.');
+        const rows = await supabaseAdmin('/rest/v1/class_sessions', { method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ title, starts_at: startsAt, ends_at: endsAt, capacity: +capacity, created_by: user.id }) });
+        res.status(201).json(rows[0]);
+    } catch (error) { res.status(400).json({ error: error.message }); }
+});
+
+app.get('/api/portal/sessions', async (req, res) => {
+    try {
+        const { user, role } = await authenticatedUser(req);
+        if (role !== 'cliente') throw new Error('Sin permisos.');
+        const sessions = await supabaseAdmin(`/rest/v1/class_sessions?select=*&starts_at=gte.${encodeURIComponent(new Date().toISOString())}&order=starts_at.asc`);
+        const bookings = await supabaseAdmin('/rest/v1/class_bookings?select=session_id,client_auth_id');
+        res.json(sessions.map(session => ({ ...session, reserved: bookings.filter(item => item.session_id === session.id).length, joined: bookings.some(item => item.session_id === session.id && item.client_auth_id === user.id) })));
+    } catch (error) { res.status(403).json({ error: error.message }); }
+});
+
+app.post('/api/portal/sessions/:id/book', async (req, res) => {
+    try {
+        const { user, role } = await authenticatedUser(req);
+        if (role !== 'cliente') throw new Error('Sin permisos.');
+        const clients = await collection('clients'), client = clients.find(item => item.authUserId === user.id);
+        if (!client || !client.planId || client.fechaVencimiento < new Date().toISOString().slice(0, 10)) throw new Error('No tienes un plan vigente.');
+        const future = (client.citas || []).filter(item => item.fecha >= new Date().toISOString().slice(0, 10));
+        const booked = await supabaseAdmin(`/rest/v1/class_bookings?select=session_id&client_auth_id=eq.${user.id}`);
+        if ((client.clasesRestantes || 0) - future.length - booked.length <= 0) throw new Error('Ya no tienes clases disponibles para reservar.');
+        const rows = await supabaseAdmin('/rest/v1/class_sessions?select=starts_at&id=eq.' + req.params.id);
+        if (!rows[0]) throw new Error('El horario ya no existe.');
+        const sessionDate = rows[0].starts_at.slice(0, 10);
+        if (client.fechaVencimiento < sessionDate) throw new Error('Tu plan no cubre la fecha de este horario.');
+        await supabaseAdmin('/rest/v1/class_bookings', { method: 'POST', body: JSON.stringify({ session_id: req.params.id, client_auth_id: user.id }) });
+        res.status(201).json({ ok: true });
+    } catch (error) { res.status(400).json({ error: error.message }); }
+});
+
 // Ruta principal (Controlador)
 app.get('/', (req, res) => {
     // Aquí en el futuro puedes hacer consultas a tu Modelo (Firebase) 
