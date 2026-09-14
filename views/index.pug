@@ -24,6 +24,7 @@ html(lang="es")
           input.form-control.mb-3#contrasena(type="password" placeholder="Ingresa tu contraseña" autocomplete="current-password" required)
           p#loginError.form-error(hidden) Usuario o contraseña incorrectos.
           button.btn.btn-primary.w-100.py-2(type="submit") Iniciar sesión
+          button.btn-link.mx-auto#recuperarContrasena(type="button") ¿Olvidaste tu contraseña?
         p.login-help Usa el correo y contraseña creados por el administrador.
 
     //- Aplicación autenticada
@@ -263,6 +264,16 @@ html(lang="es")
                   div.col-md-6
                     label.form-label(for="cumpleanos") Cumpleaños
                     input.form-control#cumpleanos(type="date" required)
+                  div.col-12#datosAccesoCliente
+                    p.eyebrow.mb-2 Acceso del cliente
+                    div.row.g-3
+                      div.col-md-6
+                        label.form-label(for="emailCliente") Correo electrónico para iniciar sesión
+                        input.form-control#emailCliente(type="email" autocomplete="email")
+                      div.col-md-6
+                        label.form-label(for="contrasenaTemporal") Contraseña temporal
+                        input.form-control#contrasenaTemporal(type="password" minlength="8" autocomplete="new-password")
+                    p.form-text El cliente podrá cambiar esta contraseña desde su perfil.
                   div.col-12
                     label.form-label(for="notas") Notas de salud o consideraciones
                     textarea.form-control#notas(rows="3" placeholder="Ej. lesión, enfermedad, limitación física o indicaciones importantes.")
@@ -332,6 +343,109 @@ html(lang="es")
               div.modal-footer
                 button.btn.btn-light(type="button" data-bs-dismiss="modal") Cancelar
                 button.btn.btn-danger(type="submit") Eliminar pago
+
+    //- Portal móvil del cliente: solo se muestra a perfiles con rol cliente.
+    div#clientAppView.app-shell(hidden)
+      aside.sidebar
+        div.sidebar-brand
+          span.brand-mark
+            img(src="/images/logo.jpg" alt="Logo de Estudio Pilates")
+          span Estudio Pilates
+        nav.sidebar-nav(aria-label="Navegación del cliente")
+          button.client-nav-link.nav-link.active(type="button" data-client-view="clienteInicio") Inicio
+          button.client-nav-link.nav-link(type="button" data-client-view="clientePagos") Pagos
+          button.client-nav-link.nav-link(type="button" data-client-view="clienteHistorial") Historial
+          button.client-nav-link.nav-link(type="button" data-client-view="clienteAgenda") Agenda
+          button.client-nav-link.nav-link(type="button" data-client-view="clientePerfil") Perfil
+        div.sidebar-bottom
+          span#clienteActivo Cliente
+          button#cerrarSesionCliente.btn-link(type="button") Cerrar sesión
+      main.app-main
+        header.app-header
+          div
+            p.eyebrow.mb-1 Mi estudio
+            h1#clientPageTitle Inicio
+          button.btn.btn-outline-primary.btn-sm#actualizarPortal(type="button") ↻ Actualizar
+        section#clienteInicio.client-view-panel
+          section.hero
+            div
+              p.eyebrow.mb-2 Mi membresía
+              h2#clienteSaludo Bienvenida
+              p.mb-0#clienteVigencia Cargando datos de tu suscripción…
+            img.hero-silhouette(src="/images/logo.jpg" alt="Logo de Estudio Pilates")
+          div.dashboard-grid
+            article.metric-card
+              span.metric-label Días de suscripción
+              strong#clienteDiasRestantes 0
+              small Hasta la fecha de vencimiento
+            article.metric-card
+              span.metric-label Clases disponibles
+              strong#clienteClasesRestantes 0
+              small Para asistir o agendar
+            article.metric-card
+              span.metric-label Citas disponibles
+              strong#clienteCitasRestantes 0
+              small Considerando citas futuras
+          div.content-card
+            h3.h5 Próxima clase
+            p#proximaCitaCliente.card-description No tienes una cita programada.
+        section#clientePagos.client-view-panel(hidden)
+          div.section-heading
+            div
+              p.eyebrow.mb-1 Mi cuenta
+              h2 Mis pagos
+          div.content-card.table-card
+            div.table-responsive
+              table.table.align-middle.mb-0
+                thead
+                  tr
+                    th Plan
+                    th Monto
+                    th Fecha
+                tbody#tablaPagosCliente
+        section#clienteHistorial.client-view-panel(hidden)
+          div.section-heading
+            div
+              p.eyebrow.mb-1 Mi cuenta
+              h2 Historial
+          div.content-card
+            p.card-description Solo se muestran los pagos asociados a tu cuenta.
+            ul#historialCliente.timeline
+        section#clienteAgenda.client-view-panel(hidden)
+          div.section-heading
+            div
+              p.eyebrow.mb-1 Mis reservas
+              h2 Agenda
+          div.content-card
+            form#agendarCitaClienteForm
+              div.row.g-3
+                div.col-sm-6
+                  label.form-label(for="fechaCitaCliente") Fecha
+                  input.form-control#fechaCitaCliente(type="date" required)
+                div.col-sm-6
+                  label.form-label(for="horaCitaCliente") Horario
+                  input.form-control#horaCitaCliente(type="time" required)
+              button.btn.btn-primary.mt-3(type="submit") Agendar cita
+            hr.my-4
+            p.card-description Próximas citas agendadas.
+            ul#agendaCliente.appointment-list
+        section#clientePerfil.client-view-panel(hidden)
+          div.section-heading
+            div
+              p.eyebrow.mb-1 Mi cuenta
+              h2 Perfil
+          div.content-card
+            form#perfilClienteForm
+              label.form-label(for="perfilCorreo") Correo electrónico
+              input.form-control#perfilCorreo(type="email" autocomplete="email" required)
+              label.form-label.mt-3(for="perfilTelefono") Número de teléfono
+              input.form-control#perfilTelefono(type="tel" required)
+              button.btn.btn-primary.mt-3(type="submit") Guardar datos
+            hr.my-4
+            form#passwordClienteForm
+              label.form-label(for="nuevaPasswordCliente") Nueva contraseña
+              input.form-control#nuevaPasswordCliente(type="password" minlength="8" autocomplete="new-password" required)
+              button.btn.btn-outline-primary.mt-3(type="submit") Cambiar contraseña
     script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js")
     script(src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2")
     script(src="/css/js/supabase-config.js")
