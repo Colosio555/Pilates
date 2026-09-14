@@ -130,9 +130,18 @@ app.get('/api/sessions', async (req, res) => {
     try {
         const { role } = await authenticatedUser(req);
         if (!['admin', 'trabajador'].includes(role)) throw new Error('Sin permisos.');
-        const sessions = await supabaseAdmin('/rest/v1/class_sessions?select=*&order=starts_at.asc');
-        const bookings = await supabaseAdmin('/rest/v1/class_bookings?select=session_id');
-        res.json(sessions.map(session => ({ ...session, reserved: bookings.filter(item => item.session_id === session.id).length })));
+        const [sessions, bookings, clients] = await Promise.all([
+            supabaseAdmin('/rest/v1/class_sessions?select=*&order=starts_at.asc'),
+            supabaseAdmin('/rest/v1/class_bookings?select=session_id,client_auth_id'),
+            collection('clients')
+        ]);
+        res.json(sessions.map(session => {
+            const enrolled = bookings.filter(item => item.session_id === session.id).map(item => {
+                const client = clients.find(record => record.authUserId === item.client_auth_id);
+                return { id: item.client_auth_id, name: client ? `${client.nombre} ${client.apellidoPaterno}` : 'Cliente', code: client?.codigoUsuario || '' };
+            });
+            return { ...session, reserved: enrolled.length, enrolled };
+        }));
     } catch (error) { res.status(403).json({ error: error.message }); }
 });
 
