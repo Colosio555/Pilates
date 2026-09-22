@@ -57,6 +57,14 @@ async function saveCollection(key, payload) {
     });
 }
 
+async function cleanupExpiredSessions() {
+    const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const deleted = await supabaseAdmin(`/rest/v1/class_sessions?ends_at=lt.${encodeURIComponent(cutoff)}`, {
+        method: 'DELETE', headers: { Prefer: 'return=representation' }
+    });
+    return deleted?.length || 0;
+}
+
 async function notifyClassChange(clientAuthIds, session) {
     const apiKey = process.env.RESEND_API_KEY;
     const from = process.env.EMAIL_FROM;
@@ -159,6 +167,7 @@ app.get('/api/sessions', async (req, res) => {
     try {
         const { role } = await authenticatedUser(req);
         if (!['admin', 'trabajador'].includes(role)) throw new Error('Sin permisos.');
+        try { await cleanupExpiredSessions(); } catch (error) { console.error('No se pudieron limpiar clases antiguas:', error.message); }
         const [sessions, bookings, clients] = await Promise.all([
             supabaseAdmin('/rest/v1/class_sessions?select=*&order=starts_at.asc'),
             supabaseAdmin('/rest/v1/class_bookings?select=session_id,client_auth_id'),
@@ -172,6 +181,18 @@ app.get('/api/sessions', async (req, res) => {
             return { ...session, reserved: enrolled.length, enrolled };
         }));
     } catch (error) { res.status(403).json({ error: error.message }); }
+});
+
+app.get('/api/cron/cleanup-sessions', async (req, res) => {
+    const cronSecret = process.env.CRON_SECRET;
+    if (!cronSecret || req.headers.authorization !== `Bearer ${cronSecret}`) return res.status(401).json({ error: 'No autorizado.' });
+    try {
+        const deleted = await cleanupExpiredSessions();
+        res.json({ ok: true, deleted });
+    } catch (error) {
+        console.error('No se pudieron eliminar clases antiguas:', error.message);
+        res.status(500).json({ error: 'No se pudieron eliminar las clases antiguas.' });
+    }
 });
 
 app.post('/api/sessions', async (req, res) => {
