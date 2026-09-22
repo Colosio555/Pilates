@@ -57,6 +57,35 @@ async function saveCollection(key, payload) {
     });
 }
 
+async function notifyClassChange(clientAuthIds, session) {
+    const apiKey = process.env.RESEND_API_KEY;
+    const from = process.env.EMAIL_FROM;
+    if (!apiKey || !from) return { sent: 0, warning: 'No se enviaron correos: falta configurar RESEND_API_KEY y EMAIL_FROM en Vercel.' };
+    const recipients = [...new Set(clientAuthIds)];
+    const time = new Intl.DateTimeFormat('es-MX', { dateStyle: 'full', timeStyle: 'short', timeZone: 'America/Mexico_City' }).format(new Date(session.starts_at));
+    const title = String(session.title).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+    let sent = 0;
+    for (const userId of recipients) {
+        try {
+            const user = await supabaseAdmin(`/auth/v1/admin/users/${encodeURIComponent(userId)}`);
+            const email = user?.email || user?.user?.email;
+            if (!email) continue;
+            const response = await fetch('https://api.resend.com/emails', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    from,
+                    to: [email],
+                    subject: `Cambio en tu clase: ${session.title}`,
+                    html: `<p>Tu clase <strong>${title}</strong> fue modificada.</p><p>Nuevo horario: <strong>${time}</strong>.</p><p>Te esperamos en el estudio.</p>`
+                })
+            });
+            if (response.ok) sent++;
+        } catch (error) { console.error('No se pudo avisar de la modificación de clase:', error.message); }
+    }
+    return { sent, warning: sent < recipients.length ? 'Algunos correos no pudieron enviarse; revisa la configuración de correo en Vercel.' : '' };
+}
+
 function clientPortalRecord(client, payments) {
     return {
         id: client.id, codigoUsuario: client.codigoUsuario, nombre: client.nombre,
@@ -149,11 +178,38 @@ app.post('/api/sessions', async (req, res) => {
     try {
         const { user, role } = await authenticatedUser(req);
         if (!['admin', 'trabajador'].includes(role)) throw new Error('Sin permisos.');
-        const { title, startsAt, endsAt, capacity } = req.body;
-        if (!title || !startsAt || !endsAt || !Number.isInteger(+capacity) || +capacity < 1) throw new Error('Completa un título, horario válido y cupo.');
+        const { title, color, startsAt, endsAt, capacity } = req.body;
+        const allowedColors = new Set(['azul', 'rojo', 'verde', 'amarillo', 'naranja', 'morado', 'rosa', 'cafe', 'gris']);
+        const cleanTitle = typeof title === 'string' ? title.trim() : '';
+        if (!cleanTitle || !startsAt || !endsAt || !Number.isInteger(+capacity) || +capacity < 1 || !allowedColors.has(color)) throw new Error('Completa el nombre, color, horario válido y cupo de la clase.');
         if (new Date(endsAt) <= new Date(startsAt)) throw new Error('La hora de fin debe ser posterior a la hora de inicio.');
-        const rows = await supabaseAdmin('/rest/v1/class_sessions', { method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ title, starts_at: startsAt, ends_at: endsAt, capacity: +capacity, created_by: user.id }) });
+        const rows = await supabaseAdmin('/rest/v1/class_sessions', { method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ title: cleanTitle, color, starts_at: startsAt, ends_at: endsAt, capacity: +capacity, created_by: user.id }) });
         res.status(201).json(rows[0]);
+    } catch (error) { res.status(400).json({ error: error.message }); }
+});
+
+app.patch('/api/sessions/:id', async (req, res) => {
+    try {
+        const { role } = await authenticatedUser(req);
+        if (role !== 'admin') throw new Error('Solo el administrador puede modificar clases.');
+        const sessionId = encodeURIComponent(req.params.id);
+        const current = await supabaseAdmin(`/rest/v1/class_sessions?select=*&id=eq.${sessionId}`);
+        if (!current[0]) throw new Error('La clase no existe.');
+        if (new Date(current[0].starts_at) <= new Date()) throw new Error('Solo se pueden modificar clases futuras.');
+        const { title, color, startsAt, endsAt, capacity } = req.body;
+        const allowedColors = new Set(['azul', 'rojo', 'verde', 'amarillo', 'naranja', 'morado', 'rosa', 'cafe', 'gris']);
+        const cleanTitle = typeof title === 'string' ? title.trim() : '';
+        const starts = new Date(startsAt), ends = new Date(endsAt);
+        if (!cleanTitle || !allowedColors.has(color) || !Number.isInteger(+capacity) || +capacity < 1 || Number.isNaN(starts.getTime()) || Number.isNaN(ends.getTime()) || ends <= starts) throw new Error('Completa nombre, color, fecha, horario y cupo válidos.');
+        if (starts <= new Date()) throw new Error('La nueva fecha y hora deben ser futuras.');
+        const bookings = await supabaseAdmin(`/rest/v1/class_bookings?select=client_auth_id&session_id=eq.${sessionId}`);
+        if (+capacity < bookings.length) throw new Error(`El cupo no puede ser menor que los ${bookings.length} clientes ya inscritos.`);
+        const rows = await supabaseAdmin(`/rest/v1/class_sessions?id=eq.${sessionId}`, {
+            method: 'PATCH', headers: { Prefer: 'return=representation' },
+            body: JSON.stringify({ title: cleanTitle, color, starts_at: startsAt, ends_at: endsAt, capacity: +capacity })
+        });
+        const notification = await notifyClassChange(bookings.map(item => item.client_auth_id), rows[0]);
+        res.json({ session: rows[0], emailsSent: notification.sent, emailWarning: notification.warning });
     } catch (error) { res.status(400).json({ error: error.message }); }
 });
 

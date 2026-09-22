@@ -30,6 +30,7 @@ $$;
 create table if not exists public.class_sessions (
   id uuid primary key default gen_random_uuid(),
   title text not null default 'Clase de Pilates',
+  color text not null default 'azul' check (color in ('azul', 'rojo', 'verde', 'amarillo', 'naranja', 'morado', 'rosa', 'cafe', 'gris')),
   starts_at timestamptz not null,
   ends_at timestamptz not null,
   capacity integer not null check (capacity > 0),

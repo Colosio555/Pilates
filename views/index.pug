@@ -177,21 +177,22 @@ html(lang="es")
               p.eyebrow.mb-1 Organización
               h2 Agenda de citas
             div.calendar-controls
-              button.btn-action#mesAnterior(type="button") ← Anterior
-              strong#tituloMesAgenda
-              button.btn-action#mesSiguiente(type="button") Siguiente →
+              button.btn-action#semanaAnterior(type="button" aria-label="Semana anterior") ←
+              strong#tituloSemanaAgenda
+              button.btn-action#semanaSiguiente(type="button" aria-label="Semana siguiente") →
           div.row.g-4
             div.col-lg-8
               div.content-card
                 div.calendar-weekdays
-                  span Dom
                   span Lun
                   span Mar
                   span Mié
                   span Jue
                   span Vie
                   span Sáb
-                div#calendarioAgenda.calendar-grid
+                  span Dom
+                div.week-calendar-wrap
+                  div#calendarioAgenda.week-calendar
             div.col-lg-4
               div.content-card
                 h3.h5 Publicar horario disponible
@@ -199,12 +200,25 @@ html(lang="es")
                 form#horarioDisponibleForm
                   label.form-label Fecha seleccionada
                   input.form-control#fechaHorario(type="text" readonly placeholder="Selecciona un día")
+                  label.form-label.mt-3(for="tituloHorario") Nombre de la clase
+                  input.form-control#tituloHorario(type="text" maxlength="80" placeholder="Ej. Pilates matutino" required disabled)
                   label.form-label.mt-3(for="inicioHorario") Hora de inicio
                   input.form-control#inicioHorario(type="time" required disabled)
                   label.form-label.mt-3(for="finHorario") Hora de fin
                   input.form-control#finHorario(type="time" required disabled)
                   label.form-label.mt-3(for="cupoHorario") Cupo máximo
                   input.form-control#cupoHorario(type="number" min="1" value="1" required disabled)
+                  label.form-label.mt-3(for="colorHorario") Color para la clase
+                  select.form-select#colorHorario(required disabled)
+                    option(value="azul" selected) Azul
+                    option(value="rojo") Rojo
+                    option(value="verde") Verde
+                    option(value="amarillo") Amarillo
+                    option(value="naranja") Naranja
+                    option(value="morado") Morado
+                    option(value="rosa") Rosa
+                    option(value="cafe") Café
+                    option(value="gris") Gris
                   button.btn.btn-primary.w-100.mt-3#publicarHorario(type="submit" disabled) Publicar horario
                 hr.my-4
                 h3.h5 Horarios publicados
@@ -360,6 +374,48 @@ html(lang="es")
               div.modal-footer
                 button.btn.btn-light(type="button" data-bs-dismiss="modal") Cancelar
                 button.btn.btn-danger(type="submit") Eliminar pago
+
+      div.modal.fade#claseModal(tabindex="-1" aria-hidden="true")
+        div.modal-dialog.modal-dialog-scrollable
+          div.modal-content
+            form#claseForm
+              div.modal-header
+                div
+                  p.eyebrow.mb-1 Administración
+                  h2.modal-title.fs-5 Modificar clase futura
+                button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Cerrar")
+              div.modal-body
+                input#claseId(type="hidden")
+                p.card-description Los clientes inscritos recibirán un correo con el cambio.
+                label.form-label(for="claseTitulo") Nombre de la clase
+                input.form-control#claseTitulo(type="text" maxlength="80" required)
+                div.row.g-3.mt-1
+                  div.col-md-6
+                    label.form-label(for="claseFecha") Fecha
+                    input.form-control#claseFecha(type="date" required)
+                  div.col-md-6
+                    label.form-label(for="claseCupo") Cupo máximo
+                    input.form-control#claseCupo(type="number" min="1" required)
+                  div.col-md-6
+                    label.form-label(for="claseInicio") Hora de inicio
+                    input.form-control#claseInicio(type="time" required)
+                  div.col-md-6
+                    label.form-label(for="claseFin") Hora de fin
+                    input.form-control#claseFin(type="time" required)
+                label.form-label.mt-3(for="claseColor") Color para la clase
+                select.form-select#claseColor(required)
+                  option(value="azul") Azul
+                  option(value="rojo") Rojo
+                  option(value="verde") Verde
+                  option(value="amarillo") Amarillo
+                  option(value="naranja") Naranja
+                  option(value="morado") Morado
+                  option(value="rosa") Rosa
+                  option(value="cafe") Café
+                  option(value="gris") Gris
+              div.modal-footer
+                button.btn.btn-light(type="button" data-bs-dismiss="modal") Cancelar
+                button.btn.btn-primary(type="submit") Guardar cambios y avisar
 
     //- Portal móvil del cliente: solo se muestra a perfiles con rol cliente.
     div#clientAppView.app-shell(hidden)
