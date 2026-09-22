@@ -185,7 +185,12 @@ app.post('/api/sessions', async (req, res) => {
         if (new Date(endsAt) <= new Date(startsAt)) throw new Error('La hora de fin debe ser posterior a la hora de inicio.');
         const rows = await supabaseAdmin('/rest/v1/class_sessions', { method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ title: cleanTitle, color, starts_at: startsAt, ends_at: endsAt, capacity: +capacity, created_by: user.id }) });
         res.status(201).json(rows[0]);
-    } catch (error) { res.status(400).json({ error: error.message }); }
+    } catch (error) {
+        const message = error.message?.includes("Could not find the 'color' column")
+            ? 'La agenda necesita actualizar la base de datos antes de guardar colores. Ejecuta la migración weekly-agenda-color-migration.sql en Supabase SQL Editor.'
+            : error.message;
+        res.status(400).json({ error: message });
+    }
 });
 
 app.patch('/api/sessions/:id', async (req, res) => {

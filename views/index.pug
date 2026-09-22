@@ -223,20 +223,6 @@ html(lang="es")
                 hr.my-4
                 h3.h5 Horarios publicados
                 ul#listaHorariosPublicados.appointment-list
-            div.col-lg-4
-              div.content-card
-                h3.h5#fechaAgendaSeleccionada Selecciona una fecha
-                p.card-description Elige un día del calendario para agendar una cita.
-                form#citaForm
-                  input#fechaCita(type="hidden")
-                  label.form-label(for="clienteCita") Cliente
-                  select.form-select#clienteCita(required disabled)
-                  div#contadorCitasCliente.appointment-balance Selecciona un cliente para ver sus clases y citas disponibles.
-                  label.form-label.mt-3(for="horaCita") Horario
-                  input.form-control#horaCita(type="time" required disabled)
-                  button.btn.btn-primary.w-100.mt-3#guardarCita(type="submit" disabled) Agendar cita
-                ul#listaCitasDia.appointment-list.mt-4
-
         section#ingresos.view-panel.admin-only(hidden)
           div.section-heading
             div
