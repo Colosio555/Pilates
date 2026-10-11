@@ -98,7 +98,7 @@ function clientPortalRecord(client, payments) {
     return {
         id: client.id, codigoUsuario: client.codigoUsuario, nombre: client.nombre,
         apellidoPaterno: client.apellidoPaterno, apellidoMaterno: client.apellidoMaterno,
-        contacto: client.contacto, cumpleanos: client.cumpleanos, paquete: client.paquete,
+        contacto: client.contacto, cumpleanos: client.cumpleanos, planId: client.planId, paquete: client.paquete,
         clasesContratadas: client.clasesContratadas, clasesRestantes: client.clasesRestantes,
         fechaVencimiento: client.fechaVencimiento, notas: client.notas,
         citas: client.citas || [],
