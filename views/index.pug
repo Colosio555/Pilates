@@ -228,6 +228,7 @@ html(lang="es")
             div
               p.eyebrow.mb-1 Administración
               h2 Finanzas del negocio
+            button.btn.btn-primary#abrirReporteFinanzas(type="button") Descargar reporte .xls
           div.dashboard-grid.finance-metrics
             article.metric-card
               span.metric-label Ingresos del mes
@@ -252,6 +253,26 @@ html(lang="es")
                 h3.h5 Ingresos por plan
                 p.card-description Distribución acumulada
                 ul#desglosePlanes.income-breakdown
+
+        div.modal.fade#reporteFinanzasModal(tabindex="-1" aria-labelledby="tituloReporteFinanzas" aria-hidden="true")
+          div.modal-dialog.modal-dialog-centered
+            div.modal-content
+              form#reporteFinanzasForm
+                div.modal-header
+                  h2.modal-title.fs-5#tituloReporteFinanzas Reporte de finanzas
+                  button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Cerrar")
+                div.modal-body
+                  p.card-description Selecciona el periodo que quieres incluir en el archivo.
+                  div.row.g-3
+                    div.col-md-6
+                      label.form-label(for="reporteFechaInicio") Desde
+                      input.form-control#reporteFechaInicio(type="date" required)
+                    div.col-md-6
+                      label.form-label(for="reporteFechaFin") Hasta
+                      input.form-control#reporteFechaFin(type="date" required)
+                div.modal-footer
+                  button.btn.btn-light(type="button" data-bs-dismiss="modal") Cancelar
+                  button.btn.btn-primary(type="submit") Generar reporte
 
       //- Modal de expediente
       div.modal.fade#clienteModal(tabindex="-1" aria-hidden="true")
@@ -521,5 +542,6 @@ html(lang="es")
             div#horariosDiaCliente
     script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js")
     script(src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2")
+    script(src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js")
     script(src="/css/js/supabase-config.js")
     script(src="/css/js/app.js" defer)
