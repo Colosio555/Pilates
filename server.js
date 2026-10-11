@@ -254,15 +254,26 @@ app.post('/api/portal/sessions/:id/book', async (req, res) => {
         const { user, role } = await authenticatedUser(req);
         if (role !== 'cliente') throw new Error('Sin permisos.');
         const clients = await collection('clients'), client = clients.find(item => item.authUserId === user.id);
-        if (!client || !client.planId || client.fechaVencimiento < new Date().toISOString().slice(0, 10)) throw new Error('No tienes un plan vigente.');
-        const future = (client.citas || []).filter(item => item.fecha >= new Date().toISOString().slice(0, 10));
-        const booked = await supabaseAdmin(`/rest/v1/class_bookings?select=session_id&client_auth_id=eq.${user.id}`);
-        if ((client.clasesRestantes || 0) - future.length - booked.length <= 0) throw new Error('Ya no tienes clases disponibles para reservar.');
-        const rows = await supabaseAdmin('/rest/v1/class_sessions?select=starts_at&id=eq.' + req.params.id);
-        if (!rows[0]) throw new Error('El horario ya no existe.');
-        const sessionDate = rows[0].starts_at.slice(0, 10);
+        const now = new Date(), today = now.toISOString().slice(0, 10);
+        if (!client || !client.planId || client.fechaVencimiento < today) throw new Error('No tienes un plan vigente.');
+        const rows = await supabaseAdmin('/rest/v1/class_sessions?select=id,starts_at,capacity&id=eq.' + encodeURIComponent(req.params.id));
+        const session = rows[0];
+        if (!session) throw new Error('El horario ya no existe.');
+        if (new Date(session.starts_at) <= now) throw new Error('Este horario ya comenzó o ya pasó.');
+        const sessionDate = session.starts_at.slice(0, 10);
         if (client.fechaVencimiento < sessionDate) throw new Error('Tu plan no cubre la fecha de este horario.');
-        await supabaseAdmin('/rest/v1/class_bookings', { method: 'POST', body: JSON.stringify({ session_id: req.params.id, client_auth_id: user.id }) });
+        const [clientBookings, upcomingSessions, sessionBookings] = await Promise.all([
+            supabaseAdmin(`/rest/v1/class_bookings?select=session_id&client_auth_id=eq.${user.id}`),
+            supabaseAdmin(`/rest/v1/class_sessions?select=id,starts_at&starts_at=gte.${encodeURIComponent(now.toISOString())}`),
+            supabaseAdmin(`/rest/v1/class_bookings?select=client_auth_id&session_id=eq.${encodeURIComponent(session.id)}`)
+        ]);
+        if (sessionBookings.some(item => item.client_auth_id === user.id)) throw new Error('Ya reservaste este horario.');
+        if (sessionBookings.length >= +session.capacity) throw new Error('Este horario ya no tiene lugares disponibles.');
+        const upcomingIds = new Set(upcomingSessions.map(item => item.id));
+        const futureBookedCount = clientBookings.filter(item => upcomingIds.has(item.session_id)).length;
+        const futureAppointments = (client.citas || []).filter(item => item.fecha >= today);
+        if ((+client.clasesRestantes || 0) - futureAppointments.length - futureBookedCount <= 0) throw new Error('Ya no tienes clases disponibles para reservar.');
+        await supabaseAdmin('/rest/v1/class_bookings', { method: 'POST', body: JSON.stringify({ session_id: session.id, client_auth_id: user.id }) });
         res.status(201).json({ ok: true });
     } catch (error) { res.status(400).json({ error: error.message }); }
 });
