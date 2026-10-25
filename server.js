@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const app = express();
+app.disable('x-powered-by');
 
 // Configuración del motor de vistas
 app.set('views', path.join(__dirname, 'views'));
@@ -9,8 +10,12 @@ app.set('view engine', 'pug');
 // Middleware para archivos estáticos (CSS, JS, imágenes)
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/media', express.static(path.join(__dirname, 'media')));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb', parameterLimit: 100 }));
+app.use('/api', (_req, res, next) => {
+    res.set('Cache-Control', 'no-store');
+    next();
+});
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://thwbvssolchywdwpndsc.supabase.co';
 const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
@@ -100,7 +105,7 @@ function clientPortalRecord(client, payments) {
         apellidoPaterno: client.apellidoPaterno, apellidoMaterno: client.apellidoMaterno,
         contacto: client.contacto, cumpleanos: client.cumpleanos, planId: client.planId, paquete: client.paquete,
         clasesContratadas: client.clasesContratadas, clasesRestantes: client.clasesRestantes,
-        fechaVencimiento: client.fechaVencimiento, notas: client.notas,
+        fechaVencimiento: client.fechaVencimiento,
         citas: client.citas || [],
         pagos: payments.filter(payment => payment.clienteId === client.id)
     };
@@ -202,8 +207,9 @@ app.post('/api/sessions', async (req, res) => {
         const { title, color, startsAt, endsAt, capacity } = req.body;
         const allowedColors = new Set(['azul', 'rojo', 'verde', 'amarillo', 'naranja', 'morado', 'rosa', 'cafe', 'gris']);
         const cleanTitle = typeof title === 'string' ? title.trim() : '';
-        if (!cleanTitle || !startsAt || !endsAt || !Number.isInteger(+capacity) || +capacity < 1 || !allowedColors.has(color)) throw new Error('Completa el nombre, color, horario válido y cupo de la clase.');
-        if (new Date(endsAt) <= new Date(startsAt)) throw new Error('La hora de fin debe ser posterior a la hora de inicio.');
+        const starts = new Date(startsAt), ends = new Date(endsAt);
+        if (!cleanTitle || cleanTitle.length > 100 || Number.isNaN(starts.getTime()) || Number.isNaN(ends.getTime()) || !Number.isInteger(+capacity) || +capacity < 1 || +capacity > 100 || !allowedColors.has(color)) throw new Error('Completa el nombre (máximo 100 caracteres), color, horario válido y cupo entre 1 y 100.');
+        if (ends <= starts) throw new Error('La hora de fin debe ser posterior a la hora de inicio.');
         const rows = await supabaseAdmin('/rest/v1/class_sessions', { method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ title: cleanTitle, color, starts_at: startsAt, ends_at: endsAt, capacity: +capacity, created_by: user.id }) });
         res.status(201).json(rows[0]);
     } catch (error) {
@@ -226,7 +232,7 @@ app.patch('/api/sessions/:id', async (req, res) => {
         const allowedColors = new Set(['azul', 'rojo', 'verde', 'amarillo', 'naranja', 'morado', 'rosa', 'cafe', 'gris']);
         const cleanTitle = typeof title === 'string' ? title.trim() : '';
         const starts = new Date(startsAt), ends = new Date(endsAt);
-        if (!cleanTitle || !allowedColors.has(color) || !Number.isInteger(+capacity) || +capacity < 1 || Number.isNaN(starts.getTime()) || Number.isNaN(ends.getTime()) || ends <= starts) throw new Error('Completa nombre, color, fecha, horario y cupo válidos.');
+        if (!cleanTitle || cleanTitle.length > 100 || !allowedColors.has(color) || !Number.isInteger(+capacity) || +capacity < 1 || +capacity > 100 || Number.isNaN(starts.getTime()) || Number.isNaN(ends.getTime()) || ends <= starts) throw new Error('Completa nombre, color, fecha, horario y cupo entre 1 y 100 válidos.');
         if (starts <= new Date()) throw new Error('La nueva fecha y hora deben ser futuras.');
         const bookings = await supabaseAdmin(`/rest/v1/class_bookings?select=client_auth_id&session_id=eq.${sessionId}`);
         if (+capacity < bookings.length) throw new Error(`El cupo no puede ser menor que los ${bookings.length} clientes ya inscritos.`);
@@ -262,18 +268,13 @@ app.post('/api/portal/sessions/:id/book', async (req, res) => {
         if (new Date(session.starts_at) <= now) throw new Error('Este horario ya comenzó o ya pasó.');
         const sessionDate = session.starts_at.slice(0, 10);
         if (client.fechaVencimiento < sessionDate) throw new Error('Tu plan no cubre la fecha de este horario.');
-        const [clientBookings, upcomingSessions, sessionBookings] = await Promise.all([
-            supabaseAdmin(`/rest/v1/class_bookings?select=session_id&client_auth_id=eq.${user.id}`),
-            supabaseAdmin(`/rest/v1/class_sessions?select=id,starts_at&starts_at=gte.${encodeURIComponent(now.toISOString())}`),
-            supabaseAdmin(`/rest/v1/class_bookings?select=client_auth_id&session_id=eq.${encodeURIComponent(session.id)}`)
-        ]);
-        if (sessionBookings.some(item => item.client_auth_id === user.id)) throw new Error('Ya reservaste este horario.');
-        if (sessionBookings.length >= +session.capacity) throw new Error('Este horario ya no tiene lugares disponibles.');
-        const upcomingIds = new Set(upcomingSessions.map(item => item.id));
-        const futureBookedCount = clientBookings.filter(item => upcomingIds.has(item.session_id)).length;
         const futureAppointments = (client.citas || []).filter(item => item.fecha >= today);
-        if ((+client.clasesRestantes || 0) - futureAppointments.length - futureBookedCount <= 0) throw new Error('Ya no tienes clases disponibles para reservar.');
-        await supabaseAdmin('/rest/v1/class_bookings', { method: 'POST', body: JSON.stringify({ session_id: session.id, client_auth_id: user.id }) });
+        const maxFutureBookings = Math.max(0, (+client.clasesRestantes || 0) - futureAppointments.length);
+        if (!maxFutureBookings) throw new Error('Ya no tienes clases disponibles para reservar.');
+        await supabaseAdmin('/rest/v1/rpc/book_class_session', {
+            method: 'POST',
+            body: JSON.stringify({ target_session: session.id, target_client_auth_id: user.id, max_future_bookings: maxFutureBookings })
+        });
         res.status(201).json({ ok: true });
     } catch (error) { res.status(400).json({ error: error.message }); }
 });

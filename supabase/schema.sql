@@ -1,9 +1,9 @@
 -- Ejecuta este archivo una sola vez en Supabase: SQL Editor > New query.
-create type public.user_role as enum ('admin', 'trabajador');
+create type public.user_role as enum ('admin', 'trabajador', 'cliente');
 
 create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
-  role public.user_role not null default 'trabajador',
+  role public.user_role not null default 'cliente',
   created_at timestamptz not null default now()
 );
 
@@ -20,7 +20,7 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, role) values (new.id, 'trabajador');
+  insert into public.profiles (id, role) values (new.id, 'cliente');
   return new;
 end;
 $$;
@@ -57,7 +57,7 @@ create policy "Personal actualiza datos excepto planes" on public.app_collection
   using (key <> 'plans' or public.is_admin())
   with check (key <> 'plans' or public.is_admin());
 
--- Cada usuario nuevo se registra automáticamente como trabajador.
--- Después de crear al administrador en Authentication > Users, ejecute:
+-- Las cuentas nuevas comienzan con rol cliente. Después de crear la cuenta
+-- del administrador en Authentication > Users, ejecute:
 -- update public.profiles set role = 'admin'
 -- where id = (select id from auth.users where email = 'tu-correo@ejemplo.com');
