@@ -473,6 +473,16 @@ html(lang="es")
             div
               p.eyebrow.mb-1 Mi cuenta
               h2 Mis pagos
+          div.content-card.mb-3
+            h3.h5 Comprar un plan
+            p.card-description Elige un plan para pagar de forma segura en Mercado Pago. Tu membresía se actualizará cuando Mercado Pago confirme el pago.
+            label.form-label(for="clientePlanCheckout") Plan
+            select.form-select#clientePlanCheckout
+              option(value="") Cargando planes…
+            p#clientePlanDetalle.card-description.mt-2.mb-3 Selecciona un plan para ver el precio.
+            p#clientePagoResultado.card-description(hidden) Volviste de Mercado Pago. Estamos confirmando el resultado; la membresía se actualizará cuando recibamos la notificación segura.
+            button.btn.btn-primary#pagarPlanCliente(type="button" disabled) Continuar a Mercado Pago
+            p#clienteCheckoutEstado.card-description.mt-2.mb-0
           div.content-card.table-card
             div.table-responsive
               table.table.align-middle.mb-0
@@ -482,6 +492,10 @@ html(lang="es")
                     th Monto
                     th Fecha
                 tbody#tablaPagosCliente
+          div.content-card.mt-3
+            h3.h5 Pagos en línea
+            p.card-description El estado se actualiza automáticamente. No compartas datos de tarjeta en esta página.
+            ul#pagosDigitalesCliente.timeline
         section#clienteHistorial.client-view-panel(hidden)
           div.section-heading
             div
