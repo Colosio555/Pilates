@@ -14,9 +14,9 @@ html(lang="es")
           span.brand-mark
             img(src="/images/logo.jpg" alt="Logo de Estudio Pilates")
           span Estudio Pilates
-        p.eyebrow.mb-2 Bienvenida
-        h1 Tu estudio, en orden.
-        p.login-copy Inicia sesión para gestionar a tus clientes, pagos y asistencias.
+        p.eyebrow.mb-2#loginEyebrow Bienvenida
+        h1#loginHeading Tu estudio, en orden.
+        p.login-copy#loginDescription Inicia sesión para consultar tu cuenta y tus clases.
         form#loginForm
           label.form-label(for="usuario") Correo electrónico
           input.form-control.mb-3#usuario(type="email" placeholder="nombre@ejemplo.com" autocomplete="email" required)
@@ -25,7 +25,72 @@ html(lang="es")
           p#loginError.form-error(hidden) Usuario o contraseña incorrectos.
           button.btn.btn-primary.w-100.py-2(type="submit") Iniciar sesión
           button.btn-link.mx-auto#recuperarContrasena(type="button") ¿Olvidaste tu contraseña?
-        p.login-help Usa el correo y contraseña creados por el administrador.
+          button.btn-link.mx-auto.mt-2#mostrarRegistro(type="button") ¿Aún no tienes cuenta? Crear cuenta de cliente
+        form#registroForm(hidden)
+          input#termsVersion(type="hidden" value=termsVersion)
+          div.row.g-3
+            div.col-md-6
+              label.form-label(for="registroNombre") Nombre(s)
+              input.form-control#registroNombre(type="text" minlength="2" maxlength="80" autocomplete="given-name" required)
+            div.col-md-6
+              label.form-label(for="registroApellidoPaterno") Apellido paterno
+              input.form-control#registroApellidoPaterno(type="text" minlength="2" maxlength="80" autocomplete="family-name" required)
+            div.col-12
+              label.form-label(for="registroApellidoMaterno") Apellido materno
+              input.form-control#registroApellidoMaterno(type="text" minlength="2" maxlength="80" autocomplete="additional-name" required)
+            div.col-12
+              label.form-label(for="registroTelefono") Número de contacto
+              input.form-control#registroTelefono(type="tel" minlength="7" maxlength="25" autocomplete="tel" placeholder="10 dígitos" required)
+            div.col-12
+              label.form-label(for="registroEmail") Correo electrónico
+              input.form-control#registroEmail(type="email" maxlength="254" autocomplete="email" required)
+            div.col-12
+              label.form-label(for="registroPassword") Contraseña
+              input.form-control#registroPassword(type="password" minlength="10" maxlength="128" autocomplete="new-password" required aria-describedby="registroPasswordAyuda")
+              small.form-text#registroPasswordAyuda Usa al menos 10 caracteres. No la compartas con nadie.
+            div.col-12
+              label.form-label(for="registroPasswordConfirm") Confirma tu contraseña
+              input.form-control#registroPasswordConfirm(type="password" minlength="10" maxlength="128" autocomplete="new-password" required)
+            div.col-12
+              button.btn.btn-outline-primary.w-100#abrirAvisoPrivacidad(type="button") Leer términos y aviso de privacidad
+              div.form-check.mt-3
+                input.form-check-input#aceptaTerminos(type="checkbox" required disabled)
+                label.form-check-label(for="aceptaTerminos") He leído y acepto los términos, el aviso de privacidad y el tratamiento descrito de mis datos personales, incluidos los datos de salud que proporcione voluntariamente.
+              p#registroError.form-error.mt-2(hidden)
+            div.col-12
+              button.btn.btn-primary.w-100.py-2#crearCuenta(type="submit") Crear cuenta
+              button.btn-link.mx-auto.mt-2#volverLogin(type="button") Ya tengo cuenta · Iniciar sesión
+        p.login-help#loginHelp El personal no puede ver tu contraseña. La cuenta se protege con el inicio de sesión seguro de Supabase.
+
+    //- Mensajes propios de la página para errores, confirmaciones y resultados.
+    div#appMessages.app-messages(aria-live="polite" aria-atomic="false")
+
+    //- Los formularios no usarán globos nativos del navegador para validación.
+    div.modal.fade#confirmModal(tabindex="-1" aria-labelledby="confirmTitle" aria-hidden="true")
+      div.modal-dialog.modal-dialog-centered
+        div.modal-content
+          div.modal-header
+            h2.modal-title.fs-5#confirmTitle Confirmar acción
+            button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Cerrar")
+          div.modal-body
+            p#confirmMessage.mb-0
+          div.modal-footer
+            button.btn.btn-light#confirmCancel(type="button" data-bs-dismiss="modal") Cancelar
+            button.btn.btn-danger#confirmAccept(type="button") Confirmar
+
+    div.modal.fade#privacyModal(tabindex="-1" aria-labelledby="privacyTitle" aria-hidden="true")
+      div.modal-dialog.modal-lg.modal-dialog-centered.modal-dialog-scrollable
+        div.modal-content
+          div.modal-header
+            div
+              p.eyebrow.mb-1 Documento de privacidad
+              h2.modal-title.fs-5#privacyTitle Términos y aviso de privacidad
+            button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Cerrar")
+          div.modal-body#privacyDocument(tabindex="0" aria-label="Documento completo de términos y aviso de privacidad")
+            include privacy-terms.pug
+          div.modal-footer.justify-content-between
+            small#privacyReadHint.text-muted Desplázate hasta el final para habilitar la aceptación.
+            button.btn.btn-primary#privacyReadConfirm(type="button" disabled) Ya leí el documento completo
 
     //- Aplicación autenticada
     div#appView.app-shell(hidden)
@@ -93,7 +158,6 @@ html(lang="es")
             label.form-label(for="buscador") Buscar cliente
             div.search-row
               input.form-control#buscador(type="search" placeholder="Escribe nombre, apellido o teléfono")
-              button.btn.btn-primary#nuevoClienteInicio(type="button") + Nuevo cliente
             div#resultadosBusqueda.search-results
           div.row.g-4
             div.col-lg-7
@@ -111,7 +175,7 @@ html(lang="es")
             div
               p.eyebrow.mb-1 Expedientes
               h2 Clientes
-            button.btn.btn-primary#nuevoCliente(type="button") + Registrar cliente
+            p.card-description.mb-0 Las cuentas nuevas las crean los propios clientes desde la pantalla de acceso.
           div.content-card.search-card
             label.form-label(for="buscadorClientes") Buscar para asistencia
             input.form-control#buscadorClientes(type="search" inputmode="numeric" maxlength="4" placeholder="Ingresa el código de 4 dígitos del cliente")
@@ -131,7 +195,7 @@ html(lang="es")
           div#sinClientes.empty-state(hidden)
             div.empty-icon ♡
             h3 Aún no hay clientes
-            p Registra tu primer cliente para empezar.
+            p Comparte la página de acceso para que cada cliente cree su cuenta. Sus expedientes aparecerán aquí automáticamente.
 
         section#pagos.view-panel(hidden)
           div.section-heading
@@ -282,7 +346,7 @@ html(lang="es")
               div.modal-header
                 div
                   p.eyebrow.mb-1 Expediente
-                  h2.modal-title.fs-5#modalClienteTitulo Nuevo cliente
+                  h2.modal-title.fs-5#modalClienteTitulo Editar expediente
                 button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Cerrar")
               div.modal-body
                 input#clienteId(type="hidden")
@@ -301,23 +365,13 @@ html(lang="es")
                     input.form-control#contacto(type="tel" required)
                   div.col-md-6
                     label.form-label(for="cumpleanos") Cumpleaños
-                    input.form-control#cumpleanos(type="date" required)
-                  div.col-12#datosAccesoCliente
-                    p.eyebrow.mb-2 Acceso del cliente
-                    div.row.g-3
-                      div.col-md-6
-                        label.form-label(for="emailCliente") Correo electrónico para iniciar sesión
-                        input.form-control#emailCliente(type="email" autocomplete="email")
-                      div.col-md-6
-                        label.form-label(for="contrasenaTemporal") Contraseña temporal
-                        input.form-control#contrasenaTemporal(type="password" minlength="8" autocomplete="new-password")
-                    p.form-text El cliente podrá cambiar esta contraseña desde su perfil.
+                    input.form-control#cumpleanos(type="date")
                   div.col-12
                     label.form-label(for="notas") Notas de salud o consideraciones
                     textarea.form-control#notas(rows="3" placeholder="Ej. lesión, enfermedad, limitación física o indicaciones importantes.")
               div.modal-footer
                 button.btn.btn-light(type="button" data-bs-dismiss="modal") Cancelar
-                button.btn.btn-primary(type="submit") Guardar expediente
+                button.btn.btn-primary(type="submit") Guardar cambios
 
       div.modal.fade#pagoModal(tabindex="-1" aria-hidden="true")
         div.modal-dialog
@@ -480,8 +534,9 @@ html(lang="es")
             select.form-select#clientePlanCheckout
               option(value="") Cargando planes…
             p#clientePlanDetalle.card-description.mt-2.mb-3 Selecciona un plan para ver el precio.
-            p#clientePagoResultado.card-description(hidden) Volviste de Mercado Pago. Estamos confirmando el resultado; la membresía se actualizará cuando recibamos la notificación segura.
+            div#clientePagoResultado.payment-result.mt-3(hidden aria-live="polite")
             button.btn.btn-primary#pagarPlanCliente(type="button" disabled) Continuar a Mercado Pago
+            button.btn.btn-link.ms-2#ayudaPago(type="button") ¿Necesitas ayuda para hacer el pago?
             p#clienteCheckoutEstado.card-description.mt-2.mb-0
           div.content-card.table-card
             div.table-responsive
@@ -554,6 +609,19 @@ html(lang="es")
           div.modal-body
             p.card-description Elige una clase con lugares disponibles para reservar.
             div#horariosDiaCliente
+    div.modal.fade#ayudaPagoModal(tabindex="-1" aria-labelledby="ayudaPagoTitulo" aria-hidden="true")
+      div.modal-dialog.modal-dialog-centered.modal-dialog-scrollable
+        div.modal-content
+          div.modal-header
+            h2.modal-title.fs-5#ayudaPagoTitulo Ayuda para hacer un pago
+            button.btn-close(type="button" data-bs-dismiss="modal" aria-label="Cerrar")
+          div.modal-body
+            ol.payment-help-steps
+              li Elige un plan en la lista. Antes de continuar verás el precio y las clases que incluye.
+              li Presiona “Continuar a Mercado Pago”. La página segura de Mercado Pago abre en una nueva etapa del proceso.
+              li Completa el pago directamente en Mercado Pago. Este sitio no pide ni almacena el número de tu tarjeta ni el código de seguridad.
+              li Al terminar, volverás a tu cuenta. Espera la confirmación automática: el plan solo se activa cuando el pago aparece como aprobado.
+            p.card-description.mb-0 Si el estado queda pendiente o en proceso, evita pagar otra vez y espera la actualización del historial o comunícate con el estudio.
     script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js")
     script(src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0")
     script(src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js")

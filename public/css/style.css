@@ -13,3 +13,34 @@
 .modal { overflow-y:auto; }.modal-dialog { margin:clamp(.5rem,2vh,1.5rem) auto; }.modal-content { max-height:calc(100dvh - 1rem); }.modal-body { overflow-y:auto; overscroll-behavior:contain; }.class-block.can-edit { cursor:pointer; outline:1px dashed var(--class-color); }.class-block.can-edit:hover { filter:brightness(.96); }.class-edit-hint { color:var(--class-color); font-weight:800; text-decoration:underline; }
 .week-nav-button { display:grid; place-items:center; width:2.85rem; height:2.85rem; padding:0; border-radius:50%; background:#2876ae; color:#fff; font-size:1.65rem; font-weight:800; line-height:1; box-shadow:0 4px 12px rgba(40,118,174,.28); }.week-nav-button:hover { background:#124d7a; color:#fff; transform:translateY(-1px); }.week-nav-button:focus-visible { outline:3px solid #8bc9ed; outline-offset:3px; }
 .client-calendar-wrap { overflow-x:auto; padding:.15rem; }.client-calendar-weekdays,.client-calendar { min-width:760px; }.client-calendar-day { width:100%; min-height:310px; cursor:pointer; }.client-calendar-day .client-session-block { text-align:left; }.client-calendar-day.has-class .client-session-block small { padding:0; border-radius:0; background:transparent; color:#52697a; }.client-calendar-day:disabled { opacity:.5; cursor:not-allowed; transform:none; }.client-appointment-chip { display:block; margin:.4rem 0; padding:.35rem .5rem; border-radius:.4rem; background:#dff3e5; color:#24613b; font-size:.68rem; font-weight:750; }.client-booking-option { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.9rem 0; border-bottom:1px solid var(--line); }.client-booking-option > div { display:grid; gap:.2rem; }.client-booking-option span,.client-booking-option small { color:var(--muted); font-size:.82rem; }.client-booking-option button { flex:none; }
+
+
+/* Registro, avisos de página y documentos */
+.login-card:has(#registroForm:not([hidden])) { width:min(100%,560px); max-height:calc(100vh - 2rem); overflow-y:auto; }
+.login-card:has(#registroForm:not([hidden])) .login-brand { margin-bottom:1.5rem; }
+.login-card .form-check-label { color:#52697a; font-size:.83rem; line-height:1.5; }
+.app-messages { position:fixed; z-index:2100; top:1rem; right:1rem; display:grid; gap:.6rem; width:min(25rem,calc(100vw - 2rem)); pointer-events:none; }
+.app-notice { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; padding:.9rem 1rem; border:1px solid #c9dce9; border-left:5px solid #2876ae; border-radius:.75rem; background:#fff; color:#18344a; box-shadow:0 10px 30px rgba(21,49,73,.18); font-size:.9rem; line-height:1.45; pointer-events:auto; animation:notice-in .18s ease-out; }
+.app-notice-success { border-color:#b7ddc4; border-left-color:#25804b; background:#f3fbf5; }
+.app-notice-error { border-color:#ecc3bd; border-left-color:#b8483e; background:#fff7f5; }
+.app-notice-close { flex:none; border:0; padding:0 .2rem; background:transparent; color:inherit; font-size:1.3rem; line-height:1; opacity:.7; }
+.app-notice-close:hover { opacity:1; }
+@keyframes notice-in { from { opacity:0; transform:translateY(-.35rem); } to { opacity:1; transform:translateY(0); } }
+#privacyDocument { max-height:min(68vh,680px); padding:1.25rem; border:1px solid var(--line); border-radius:.75rem; background:#fbfdff; }
+.legal-document-section { margin-bottom:1.35rem; }
+.legal-document-section:last-child { margin-bottom:0; }
+.legal-document-section h3 { margin-bottom:.45rem; color:#124d7a; font-size:1rem; font-weight:750; }
+.legal-document-section p,.legal-document-section li { color:#40596d; font-size:.88rem; line-height:1.6; }
+.legal-document-section ul { padding-left:1.25rem; }
+.legal-document-notice { padding:.75rem; border-left:4px solid #d99a00; border-radius:.35rem; background:#fff8dc; color:#67531e !important; }
+#privacyReadHint { max-width:18rem; }
+.payment-result { padding:.85rem 1rem; border:1px solid #c9dce9; border-left:5px solid #2876ae; border-radius:.65rem; background:#f2f8fc; color:#18344a; line-height:1.5; }
+.payment-result-success { border-color:#b7ddc4; border-left-color:#25804b; background:#f3fbf5; color:#245b37; }
+.payment-result-error { border-color:#ecc3bd; border-left-color:#b8483e; background:#fff7f5; color:#783d36; }
+.payment-help-steps { display:grid; gap:.85rem; padding-left:1.3rem; color:#40596d; line-height:1.6; }
+#registroError { margin-bottom:0; }
+@media (max-width:575px) {
+  .login-card:has(#registroForm:not([hidden])) { width:100%; max-height:calc(100vh - 1rem); padding:1.25rem; }
+  #privacyDocument { max-height:60vh; padding:.9rem; }
+  .app-messages { top:.6rem; right:.6rem; width:calc(100vw - 1.2rem); }
+}

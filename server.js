@@ -22,6 +22,7 @@ app.use('/api', (_req, res, next) => {
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://thwbvssolchywdwpndsc.supabase.co';
 const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
 const MP_API_URL = 'https://api.mercadopago.com';
+const PRIVACY_TERMS_VERSION = '2026-10-25-v1';
 
 function mercadoPagoConfig() {
     const accessToken = process.env.MP_ACCESS_TOKEN;
@@ -165,20 +166,6 @@ function clientPortalRecord(client, payments) {
     };
 }
 
-app.post('/api/client-accounts', async (req, res) => {
-    try {
-        const { user, role } = await authenticatedUser(req);
-        if (!['admin', 'trabajador'].includes(role)) throw new Error('Sin permisos para crear cuentas de cliente.');
-        const { email, password } = req.body;
-        if (!email || !password || password.length < 8) throw new Error('El correo y una contraseña temporal de al menos 8 caracteres son obligatorios.');
-        const data = await supabaseAdmin('/auth/v1/admin/users', {
-            method: 'POST',
-            body: JSON.stringify({ email, password, email_confirm: true, user_metadata: { role: 'cliente', created_by: user.id } })
-        });
-        res.status(201).json({ id: data.id, email: data.email });
-    } catch (error) { res.status(400).json({ error: error.message }); }
-});
-
 app.get('/api/portal', async (req, res) => {
     try {
         const { user, role } = await authenticatedUser(req);
@@ -229,7 +216,7 @@ app.post('/api/portal/checkout', async (req, res) => {
                     body: JSON.stringify({ status: 'cancelled', updated_at: new Date().toISOString() })
                 });
             } else if (activePayment.checkout_url) {
-                return res.json({ checkoutUrl: activePayment.checkout_url });
+                return res.json({ checkoutUrl: activePayment.checkout_url, paymentId: activePayment.id });
             } else {
                 throw new Error('Estamos preparando tu pago. Espera un momento y vuelve a intentar.');
             }
@@ -270,7 +257,7 @@ app.post('/api/portal/checkout', async (req, res) => {
             method: 'PATCH', headers: { Prefer: 'return=minimal' },
             body: JSON.stringify({ provider_order_id: order.id, checkout_url: order.checkout_url, updated_at: new Date().toISOString() })
         });
-        res.status(201).json({ checkoutUrl: order.checkout_url, environment });
+        res.status(201).json({ checkoutUrl: order.checkout_url, environment, paymentId: payment.id });
     } catch (error) {
         if (paymentId) {
             try {
@@ -483,10 +470,12 @@ app.post('/api/portal/sessions/:id/book', async (req, res) => {
 
 // Ruta principal (Controlador)
 app.get('/', (req, res) => {
-    // Aquí en el futuro puedes hacer consultas a tu Modelo (Firebase) 
-    // antes de renderizar la vista.
-    res.render('index', { 
-        titulo: 'Panel de Control - Pilates' 
+    res.render('index', {
+        titulo: 'Panel de Control - Pilates',
+        termsVersion: PRIVACY_TERMS_VERSION,
+        responsablePrivacidad: process.env.PRIVACY_CONTROLLER_NAME || 'Estudio Pilates (falta confirmar el nombre legal del responsable)',
+        domicilioPrivacidad: process.env.PRIVACY_CONTROLLER_ADDRESS || 'Pendiente de configurar el domicilio físico del responsable.',
+        contactoPrivacidad: process.env.PRIVACY_CONTACT_EMAIL || 'Pendiente de configurar un correo de contacto para privacidad y derechos ARCO.'
     });
 });
 
